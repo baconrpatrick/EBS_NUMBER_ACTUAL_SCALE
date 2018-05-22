@@ -1,0 +1,24 @@
+  CREATE OR REPLACE EDITIONABLE PACKAGE XXCMFG_NUMBER_SCALE_PKG
+IS
+/*============================================================================
+    File Name        : XXCMFG_NUMBER_SCALE_PKG
+    Purpose          : check actual positive scale usage for NUMBER type
+
+    Requested by:  baconp
+
+    Use:  check columns with precision and scale as NULL for actual usage
+
+    Revision History ->
+    ----------------
+    DATE      DEVELOPER              VER DESCRIPTION
+    --------- ---------------        --- ------------------------------------
+    22-Jun-16 p bacon               1.0 Created
+
+============================================================================*/
+
+
+
+	PROCEDURE GET_NUMBER_COLS_SCALE (p_schema in VARCHAR2, p_table_name in VARCHAR2);
+
+    END XXCMFG_NUMBER_SCALE_PKG;
+/
