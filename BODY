@@ -1,0 +1,94 @@
+CREATE OR REPLACE PACKAGE BODY XXCMFG_NUMBER_SCALE_PKG IS
+
+PROCEDURE GET_NUMBER_COLS_SCALE (p_schema in VARCHAR2, p_table_name in VARCHAR2)
+	IS
+    TYPE Numeric_Column_Type IS RECORD (
+    table_name dba_ind_columns.table_name%TYPE,
+    column_name dba_ind_columns.column_name%TYPE);
+
+	v_numeric_columns Numeric_Column_Type;
+
+    TYPE cur_typ IS REF CURSOR;
+    c cur_typ;
+    query_str VARCHAR2(200);
+
+    v_length_scale NUMBER;
+
+	v_no_records EXCEPTION;
+	v_too_many_test_vals EXCEPTION;
+
+	v_error_code NUMBER(38);
+	v_error_message VARCHAR2(200);
+
+	pragma exception_init(v_no_records , -20001);
+	pragma exception_init(v_too_many_test_vals , -20002);
+
+	BEGIN
+      FOR v_numeric_columns in (
+		SELECT
+		    table_name,
+		    column_name
+		FROM
+		    dba_tab_columns tcols
+		WHERE
+		    1 = 1
+		    AND tcols.data_type = 'NUMBER'
+		    AND tcols.data_scale IS NULL
+		    AND tcols.data_precision IS NULL
+		    AND tcols.owner = p_schema
+		    AND tcols.table_name = p_table_name
+        ) LOOP
+
+        v_length_scale :=0;
+		query_str := 'SELECT max(length(regexp_substr(to_char(' || v_numeric_columns.column_name ||' ), ''[.](\d+)$'',1,1,null, 1) )) FROM APPS.'|| v_numeric_columns.table_name ;
+
+        DBMS_OUTPUT.PUT_LINE(query_str);
+        BEGIN
+
+			OPEN c FOR query_str;
+			FETCH c INTO v_length_scale;
+
+	        IF c is NULL THEN RAISE v_no_records;
+	        END IF;
+
+            DBMS_OUTPUT.PUT_LINE('the scale for '|| v_numeric_columns.table_name ||'.'|| v_numeric_columns.column_name || '  is ' || to_char(nvl(v_length_scale,0)));
+
+
+            DBMS_OUTPUT.PUT_LINE('');
+            DBMS_OUTPUT.PUT_LINE('');
+            DBMS_OUTPUT.PUT_LINE('********************************');
+
+			CLOSE c;
+
+	    EXCEPTION
+		    WHEN NO_DATA_FOUND THEN
+    			v_error_code := SQLCODE;
+    			v_error_message := SQLERRM;
+
+            WHEN v_no_records THEN
+    			v_error_code := SQLCODE;
+    			v_error_message := SQLERRM;
+
+		    WHEN OTHERS THEN
+    			v_error_code := SQLCODE;
+    			v_error_message := SQLERRM;
+
+        END;
+        END LOOP;
+
+	    EXCEPTION
+		    WHEN NO_DATA_FOUND THEN
+    			v_error_code := SQLCODE;
+    			v_error_message := SQLERRM;
+
+
+		    WHEN OTHERS THEN
+    			v_error_code := SQLCODE;
+    			v_error_message := SQLERRM;
+
+	END GET_NUMBER_COLS_SCALE;
+
+
+
+END XXCMFG_NUMBER_SCALE_PKG;
+/
